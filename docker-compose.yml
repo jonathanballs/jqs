@@ -1,0 +1,10 @@
+version: '2'
+services:
+  jqs:
+    build: .
+    ports:
+      - "4000:4000"
+    # Uncomment below to use local code in the container
+    # volumes:
+    #   - ".:/app"
+
