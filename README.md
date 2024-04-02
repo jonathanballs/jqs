@@ -1,6 +1,6 @@
 # JQS
 
-Jqs (Jonathan's Task Queue) is an asynchronous task queue implementation and API written for the V7 Labs Backend Elixir technical test.
+Jqs (Jonathan's Queue System) is an asynchronous task queue implementation and API written for the V7 Labs Backend Elixir technical test.
 It fulfils all of the core requirements as well as two of the optional requirements (concurrency limiting and retry backoff).
 It does not implement persistence.
 
