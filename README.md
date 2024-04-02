@@ -78,6 +78,18 @@ A crash can either occur naturally during the performance of the task or if the 
 JQS follows the Elixir/Erlang philosophy of [Let it Crash](https://wiki.c2.com/?LetItCrash) and `Worker` crashes are an expected part of the task processing lifecycle.
 Instead of trying to avoid and handle all errors - we allow them to happen and handle the crashes gracefully.
 
+
+#### The Task Execution Lifecycle
+
+When the `Queue` decides to start a task, it begins by taking one of the `Worker`s in its `idle_workers` list.
+The `Worker` is implemented as a `GenServer` and the `Queue` starts the task execution by calling the worker with `{:start_task, %Task{}}` which will acknowledge with `:ok`.
+The Queue will then move the task out of its priority queue and into the `active_tasks` map.
+After acknowledging the task, the `Worker` will perform the actual task at hand by running the `perform/1` callback.
+If the task is successful (defined by returning `:ok` from `perform/1` then the `Worker` will call the `Queue` with `{:task_complete, task.id}`.
+The `Queue` will perform some sanity checks to make sure that the task id in the payload matches the one from its active workers and then the task will be considered complete - in JQS this just means that it is discarded - and the worker will be returned to the `idle_worker` list.
+If the task is unsuccessfuly (it returns something other than `:ok` or it throws an exception or crashes for another reason) then the `Queue` will notice this and consider the task failed.
+The `attempts` of the state will be incremented and then the task will either be requeued or dispatched to the dead letter queue (see below).
+
 #### The Priority Queue
 
 The `PriorityQueue` module which decides the order that tasks are performed supports tasks with `high` and `low` priority. It is built on Erlang's `queue` module which provides efficient FIFO capabilities (unlike a normal `List`). I decided to go for a simple implementation with only two priorities so that I could focus my time on the asyncronous task processing. The implementation is hidden behind simple `enqueue` and `dequeue` functions and the priority queue could be upgraded to support an arbitrary number of priorities without changing the interface too much.
